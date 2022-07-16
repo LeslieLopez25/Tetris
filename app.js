@@ -59,7 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // DRAW THE FIRST TETROMINO
   function draw() {
     current.forEach((index) => {
-      squares[currentPosition + index.classList.add("tetromino")];
+      squares[currentPosition + index].classList.add("tetromino");
     });
   }
 
@@ -68,5 +68,15 @@ document.addEventListener("DOMContentLoaded", () => {
     current.forEach((index) => {
       squares[currentPosition + index].classList.remove("tetromino");
     });
+  }
+
+  // MAKE THE TETROMINO MOVE DOWN EVERY SECOND
+  timerId = setInterval(moveDown, 1000);
+
+  // MOVE DOWN FUNCTION
+  function moveDown() {
+    undraw();
+    currentPosition += width;
+    draw();
   }
 });
