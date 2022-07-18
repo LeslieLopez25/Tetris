@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let nextRandom = 0;
   let timerId;
   let score = 0;
+  const colors = ["orange", "red", "purple", "green", "blue"];
 
   // THE TETROMINOES
   const lTetromino = [
@@ -63,6 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function draw() {
     current.forEach((index) => {
       squares[currentPosition + index].classList.add("tetromino");
+      squares[currentPosition + index].style.backgroundColor = colors[random];
     });
   }
 
@@ -70,11 +72,9 @@ document.addEventListener("DOMContentLoaded", () => {
   function undraw() {
     current.forEach((index) => {
       squares[currentPosition + index].classList.remove("tetromino");
+      squares[currentPosition + index].style.backgroundColor = "";
     });
   }
-
-  // MAKE THE TETROMINO MOVE DOWN EVERY SECOND
-  timerId = setInterval(moveDown, 1000);
 
   // ASSIGN FUNCTIONS TO KeyCodes
   function control(e) {
@@ -126,9 +126,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const isAtLeftEdge = current.some(
       (index) => (currentPosition + index) % width === 0
     );
-
     if (!isAtLeftEdge) currentPosition -= 1;
-
     if (
       current.some((index) =>
         squares[currentPosition + index].classList.contains("taken")
@@ -136,7 +134,6 @@ document.addEventListener("DOMContentLoaded", () => {
     ) {
       currentPosition += 1;
     }
-
     draw();
   }
 
@@ -146,9 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const isAtRightEdge = current.some(
       (index) => (currentPosition + index) % width === width - 1
     );
-
     if (!isAtRightEdge) currentPosition += 1;
-
     if (
       current.some((index) =>
         squares[currentPosition + index].classList.contains("taken")
@@ -156,26 +151,50 @@ document.addEventListener("DOMContentLoaded", () => {
     ) {
       currentPosition -= 1;
     }
-
     draw();
+  }
+
+  // FIX ROTATION OF TETROMINOS AT THE EDGE
+  function isAtRight() {
+    return current.some((index) => (currentPosition + index + 1) % width === 0);
+  }
+
+  function isAtLeft() {
+    return current.some((index) => (currentPosition + index) % width === 0);
+  }
+
+  function checkRotatedPosition(P) {
+    P = P || currentPosition;
+    if ((P + 1) % width < 4) {
+      if (isAtRight()) {
+        currentPosition += 1;
+        checkRotatedPosition(P);
+      }
+    } else if (P % width > 5) {
+      if (isAtLeft()) {
+        currentPosition -= 1;
+        checkRotatedPosition(P);
+      }
+    }
   }
 
   // ROTATE THE TETROMINO
   function rotate() {
     undraw();
     currentRotation++;
-    if (currentRotation == current.length) {
+    if (currentRotation === current.length) {
       // IF THE CURRENT ROTATION GETS TO 4, MAKE IT GO BACK TO 0  \\
       currentRotation = 0;
     }
     current = theTetrominoes[random][currentRotation];
+    checkRotatedPosition();
     draw();
   }
 
   // SHOW UP-NEXT TETROMINO IN MINI-GRID DISPLAY
   const displaySquares = document.querySelectorAll(".mini-grid div");
   const displayWidth = 4;
-  let displayIndex = 0;
+  const displayIndex = 0;
 
   const upNextTetrominoes = [
     [1, displayWidth + 1, displayWidth * 2 + 1, 2], //lTetromino
@@ -190,9 +209,12 @@ document.addEventListener("DOMContentLoaded", () => {
     // REMOVE ANY TRACE OF A TETROMINO FORM THE ENTIRE GRID
     displaySquares.forEach((square) => {
       square.classList.remove("tetromino");
+      square.style.backgroundColor = "";
     });
     upNextTetrominoes[nextRandom].forEach((index) => {
       displaySquares[displayIndex + index].classList.add("tetromino");
+      displaySquares[displayIndex + index].style.backgroundColor =
+        colors[nextRandom];
     });
   }
 
@@ -231,6 +253,7 @@ document.addEventListener("DOMContentLoaded", () => {
         row.forEach((index) => {
           squares[index].classList.remove("taken");
           squares[index].classList.remove("tetromino");
+          squares[index].style.backgroundColor = "";
         });
         const squaresRemoved = squares.splice(i, width);
         squares = squaresRemoved.concat(squares);
@@ -246,7 +269,7 @@ document.addEventListener("DOMContentLoaded", () => {
         squares[currentPosition + index].classList.contains("taken")
       )
     ) {
-      scoreDisplay.innerHTML = "end";
+      scoreDisplay.innerHTML = "End";
       clearInterval(timerId);
     }
   }
